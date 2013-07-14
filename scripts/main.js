@@ -21,11 +21,15 @@ $(function() {
 		.attr("class","margingroup")
 		.attr("transform", "translate(" + g.svgMargin.left + "," + g.svgMargin.top + ")");
 
-	var numSquares = 2500;
+	var numSquares = 500;
 	myData = d3.range(1,numSquares+1,1);
 
+
+	var points = numSquares/50;
+	var points2 = numSquares/20;
+
 	myData = myData.map(function(a){
-		return {i:a, d:2*Math.PI*a/6}
+		return {i:a, d:  points2*Math.PI*a/numSquares + (a%points)*2*Math.PI/points}
 		})
 	
 
@@ -49,50 +53,53 @@ $(function() {
 		.attr("fill", function(d) {return colScale(d.i)})
 		.attr("class","anim")
 
-	squares
-		.transition()
-		.duration()
-		.delay(function(d,i){
-			return i
-		})
-		.each('end',plot2Anim)
-
-
+	
+	
 
 	function plot2Anim() {
-		
-		
-		var data = d3.select(this).datum()
-		
-		//data.d += Math.PI/numSquares;
-		data.d += 2*data.i*Math.PI/13;
-		// data.d += 2*Math.PI/20;
+	
+		myData = myData.map(function(d){
+			var newi = d.i;
+			var newd = d.d;
+			newd += d.i%points2/numSquares*Math.PI
+			newd += points2*Math.PI*d.i/numSquares*2;
+			
 
-		d3.select(this)	
-			.datum(data)
+			return {i:newi, d:newd};
+		})
+
+		squares
+			.data(myData)
 			.transition()
-			.duration(10000)		
+			.duration(2000)	
+			.delay(function(d) {
+				return d.i
+			})	
+			.ease("linear")
 			.attr("x",function(d,i){
 				return asin(d.d,500);
 			})
 			.attr("y",function(d,i){
 				return acos(d.d,500);
 			})
-			.each('end',plot2Anim)
-
+			.each('end', function() {
+				console.log (this.__data__.i)
+				if (this.__data__.i == numSquares) {
+				
+					plot2Anim()
+				}
+			})
 	}
+
+	plot2Anim()
 
 
 })
 
-
-
 function asin(num,scale){
-	return ((1+Math.sin(num))/2)*scale
+	return ((1+Math.sin(num))/2)*scale//+ ((1+Math.sin(num/6))/2)*scale/2
 }
 
 function acos(num,scale){
-	return ((1+Math.cos(num))/2)*scale
+	return ((1+Math.cos(num))/2)*scale//+ ((1+Math.cos(num/6))/2)*scale/2
 }
-
-
