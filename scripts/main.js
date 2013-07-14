@@ -21,8 +21,17 @@ $(function() {
 		.attr("class","margingroup")
 		.attr("transform", "translate(" + g.svgMargin.left + "," + g.svgMargin.top + ")");
 
-	var numSquares = 500;
+	var numSquares = 2500;
 	myData = d3.range(1,numSquares+1,1);
+
+	myData = myData.map(function(a){
+		return {i:a, d:2*Math.PI*a/6}
+		})
+	
+
+	var colScale = d3.scale.linear()
+			.domain([0,numSquares])
+			.range(["#6AE817","#B30409"]);
 
 	squares = svg.selectAll(".anim").data(myData);
 
@@ -31,42 +40,47 @@ $(function() {
 		.append("rect")
 		.attr("height", g.squareSize)
 		.attr("width", g.squareSize)
-		.attr("x",function(d,i){return 1;})
-		.attr("fill", function(d) {return "#FB0000";})
+		.attr("x",function(d,i){
+				return asin(d.d,500);
+		})
+		.attr("y",function(d,i){
+			return acos(d.d,500);
+		})
+		.attr("fill", function(d) {return colScale(d.i)})
 		.attr("class","anim")
-	
-	squares = svg.selectAll(".anim").data(myData);
-
-	pos = 0;
-
-	
-	console.log(d3.range)
-
-
-	function plot1Anim() {
-		
 
 	squares
 		.transition()
-		.duration(0)
-		.ease("linear")
-		.attr("x",function(d,i){
-			return asin(pos+i/8,500);
+		.duration()
+		.delay(function(d,i){
+			return i
 		})
-		.attr("y",function(d,i){
-			
-			 return i*g.squareSize/10
-		})
-		.each('end', function(d,i) {
-	
-			if (i ==numSquares-1)	{
-				pos+=Math.PI/1000
-				plot1Anim();
-			}
-		})
-	}
+		.each('end',plot2Anim)
 
-	plot1Anim()
+
+
+	function plot2Anim() {
+		
+		
+		var data = d3.select(this).datum()
+		
+		//data.d += Math.PI/numSquares;
+		data.d += 2*data.i*Math.PI/13;
+		// data.d += 2*Math.PI/20;
+
+		d3.select(this)	
+			.datum(data)
+			.transition()
+			.duration(10000)		
+			.attr("x",function(d,i){
+				return asin(d.d,500);
+			})
+			.attr("y",function(d,i){
+				return acos(d.d,500);
+			})
+			.each('end',plot2Anim)
+
+	}
 
 
 })
